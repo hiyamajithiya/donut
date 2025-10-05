@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django
+*.log
+*.pot
+*.pyc
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# React build
+frontend/build/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Models and ML
+models/
+*.pkl
+*.pth
+*.h5
+*.ckpt
+checkpoint/
+runs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.cache
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Redis
+dump.rdb
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Documentation
+*.pdf
+
+# Claude
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Testing
+coverage/
+*.cover
+.hypothesis/
+.pytest_cache/
+*.test.js
+*.spec.js
