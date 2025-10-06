@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -23,6 +23,7 @@ import {
   Alert,
   Fab,
   Tooltip,
+  CircularProgress,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -41,6 +42,7 @@ import {
   Schedule as PendingIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { wizardAPI } from '../services/api';
 
 interface Project {
   id: string;
@@ -61,66 +63,9 @@ interface Project {
 
 const Projects: React.FC = () => {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: '1',
-      name: 'Invoice Processing System',
-      description: 'Automated invoice data extraction and validation',
-      documentType: 'Invoice',
-      status: 'active',
-      progress: 85,
-      documentsCount: 1250,
-      processedCount: 1063,
-      successRate: 97.8,
-      accuracy: 96.5,
-      createdAt: '2024-01-10T09:00:00Z',
-      lastActivity: '2 hours ago',
-      estimatedCompletion: '2024-01-20T18:00:00Z',
-      modelVersion: 'v1.2.3',
-    },
-    {
-      id: '2',
-      name: 'Contract Analysis Pipeline',
-      description: 'Legal document analysis and key clause extraction',
-      documentType: 'Contract',
-      status: 'training',
-      progress: 45,
-      documentsCount: 450,
-      processedCount: 203,
-      successRate: 92.1,
-      createdAt: '2024-01-12T14:30:00Z',
-      lastActivity: '30 minutes ago',
-      estimatedCompletion: '2024-01-25T16:00:00Z',
-    },
-    {
-      id: '3',
-      name: 'Receipt Digitization',
-      description: 'Receipt processing for expense management',
-      documentType: 'Receipt',
-      status: 'completed',
-      progress: 100,
-      documentsCount: 890,
-      processedCount: 890,
-      successRate: 95.4,
-      accuracy: 94.2,
-      createdAt: '2024-01-05T11:15:00Z',
-      lastActivity: '1 day ago',
-      modelVersion: 'v1.1.0',
-    },
-    {
-      id: '4',
-      name: 'Form Processing Beta',
-      description: 'Government forms and applications processing',
-      documentType: 'Form',
-      status: 'error',
-      progress: 25,
-      documentsCount: 150,
-      processedCount: 38,
-      successRate: 78.9,
-      createdAt: '2024-01-14T16:45:00Z',
-      lastActivity: '3 hours ago',
-    },
-  ]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -132,6 +77,45 @@ const Projects: React.FC = () => {
     description: '',
     documentType: '',
   });
+
+  // Fetch models from API
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setLoading(true);
+        const response = await wizardAPI.getModels();
+
+        // Transform API response to Project format
+        const transformedProjects: Project[] = response.data.models.map((model: any) => ({
+          id: model.id,
+          name: model.name,
+          description: model.description || 'No description',
+          documentType: model.document_type_display || model.document_type,
+          status: model.status === 'active' ? 'completed' : model.status,
+          progress: model.status === 'active' ? 100 : 0,
+          documentsCount: 0,
+          processedCount: 0,
+          successRate: model.field_accuracy || 0,
+          accuracy: model.field_accuracy,
+          createdAt: model.created_at,
+          lastActivity: new Date(model.updated_at).toLocaleString(),
+          modelVersion: model.version,
+        }));
+
+        setProjects(transformedProjects);
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch models:', err);
+        setError(err.response?.data?.error || 'Failed to load projects');
+        // If API fails, set empty array (no fallback to mock data)
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchModels();
+  }, []);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, project: Project) => {
     setAnchorEl(event.currentTarget);
@@ -212,6 +196,15 @@ const Projects: React.FC = () => {
     });
   };
 
+  // Show loading state
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
   return (
     <Box>
       {/* Header */}
@@ -227,11 +220,18 @@ const Projects: React.FC = () => {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => setCreateDialogOpen(true)}
+          onClick={() => navigate('/training')}
         >
           Create Project
         </Button>
       </Box>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       {/* Stats Overview */}
       <Grid container spacing={3} mb={4}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -30,6 +30,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  CircularProgress,
 } from '@mui/material';
 import {
   PlayArrow as StartIcon,
@@ -46,6 +47,7 @@ import {
   Memory as MemoryIcon,
   Speed as SpeedIcon,
 } from '@mui/icons-material';
+import { trainingJobsAPI } from '../services/api';
 
 interface TrainingJob {
   id: string;
@@ -65,58 +67,62 @@ interface TrainingJob {
 }
 
 const Training: React.FC = () => {
-  const [trainingJobs, setTrainingJobs] = useState<TrainingJob[]>([
-    {
-      id: '1',
-      name: 'Invoice Model v2.1',
-      project: 'Invoice Processing System',
-      status: 'training',
-      progress: 75,
-      currentEpoch: 15,
-      totalEpochs: 20,
-      accuracy: 94.2,
-      loss: 0.08,
-      estimatedTimeRemaining: '25 minutes',
-      startTime: '2024-01-15T14:30:00Z',
-      documentsCount: 1250,
-      modelSize: '2.3 GB',
-    },
-    {
-      id: '2',
-      name: 'Contract Analysis Model',
-      project: 'Contract Analysis Pipeline',
-      status: 'pending',
-      progress: 0,
-      currentEpoch: 0,
-      totalEpochs: 30,
-      accuracy: 0,
-      loss: 0,
-      estimatedTimeRemaining: 'Not started',
-      startTime: '2024-01-15T16:00:00Z',
-      documentsCount: 450,
-      modelSize: '1.8 GB',
-    },
-    {
-      id: '3',
-      name: 'Receipt Processing Model',
-      project: 'Receipt Digitization',
-      status: 'completed',
-      progress: 100,
-      currentEpoch: 25,
-      totalEpochs: 25,
-      accuracy: 96.8,
-      loss: 0.03,
-      estimatedTimeRemaining: 'Completed',
-      startTime: '2024-01-14T10:15:00Z',
-      duration: '2h 45m',
-      documentsCount: 890,
-      modelSize: '1.5 GB',
-    },
-  ]);
-
+  const [trainingJobs, setTrainingJobs] = useState<TrainingJob[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedJob, setSelectedJob] = useState<TrainingJob | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchTrainingJobs = async () => {
+      try {
+        setLoading(true);
+        const response = await trainingJobsAPI.getAll();
+
+        // Transform API response to TrainingJob format
+        const transformedJobs: TrainingJob[] = response.data.map((job: any) => {
+          const progress = job.status === 'completed' ? 100 :
+                          job.status === 'training' ? (job.current_epoch / job.epochs) * 100 :
+                          job.status === 'preparing' ? 10 : 0;
+
+          const estimatedTime = job.status === 'completed' ? 'Completed' :
+                               job.status === 'pending' ? 'Not started' :
+                               job.estimated_completion ? new Date(job.estimated_completion).toLocaleTimeString() : '-';
+
+          const duration = job.completed_at && job.started_at ?
+            `${Math.round((new Date(job.completed_at).getTime() - new Date(job.started_at).getTime()) / (1000 * 60))}m` : undefined;
+
+          return {
+            id: job.id,
+            name: `${job.dataset.document_type.display_name} Model`,
+            project: job.dataset.name,
+            status: job.status,
+            progress: Math.round(progress),
+            currentEpoch: job.current_epoch || 0,
+            totalEpochs: job.epochs,
+            accuracy: job.status === 'completed' ? 95 : 0, // Will be populated from model evaluation
+            loss: job.val_loss || 0,
+            estimatedTimeRemaining: estimatedTime,
+            startTime: job.started_at || job.created_at,
+            duration: duration,
+            documentsCount: job.dataset.labeled_documents || 0,
+            modelSize: '1.5 GB', // Placeholder
+          };
+        });
+
+        setTrainingJobs(transformedJobs);
+        setError(null);
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to load training jobs');
+        setTrainingJobs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTrainingJobs();
+  }, []);
 
   const handleMenuClick = (event: React.MouseEvent<HTMLElement>, job: TrainingJob) => {
     setAnchorEl(event.currentTarget);
@@ -182,6 +188,14 @@ const Training: React.FC = () => {
     return { steps, activeStep };
   };
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
+        <CircularProgress size={60} />
+      </Box>
+    );
+  }
+
   return (
     <Box>
       {/* Header */}
@@ -201,6 +215,12 @@ const Training: React.FC = () => {
           Start New Training
         </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
 
       {/* Stats Overview */}
       <Grid container spacing={3} mb={4}>

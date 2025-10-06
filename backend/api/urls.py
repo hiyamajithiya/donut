@@ -7,6 +7,11 @@ from .views import (
     BatchExtractView, ModelHealthView, ModelStatsView,
     ModelManagementView, ModelAnalyticsView, ModelComparisonView
 )
+from .wizard_views import (
+    WizardConfigView, WizardDocumentUploadView,
+    WizardAnnotationView, WizardTrainingView,
+    WizardStatusView, WizardModelsView
+)
 
 router = DefaultRouter()
 router.register(r'document-types', DocumentTypeViewSet)
@@ -25,4 +30,12 @@ urlpatterns = [
     path('models/manage/', ModelManagementView.as_view(), name='model-management'),
     path('models/analytics/', ModelAnalyticsView.as_view(), name='model-analytics'),
     path('models/compare/', ModelComparisonView.as_view(), name='model-comparison'),
+
+    # Wizard endpoints
+    path('wizard/config/', WizardConfigView.as_view(), name='wizard-config'),
+    path('wizard/upload/', WizardDocumentUploadView.as_view(), name='wizard-upload'),
+    path('wizard/annotate/', WizardAnnotationView.as_view(), name='wizard-annotate'),
+    path('wizard/train/', WizardTrainingView.as_view(), name='wizard-train'),
+    path('wizard/status/', WizardStatusView.as_view(), name='wizard-status'),
+    path('wizard/models/', WizardModelsView.as_view(), name='wizard-models'),
 ]

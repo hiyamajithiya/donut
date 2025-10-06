@@ -110,4 +110,47 @@ export const modelManagementAPI = {
   monitorHealth: () => api.post('/models/manage/', { action: 'monitor_health' }),
 };
 
+// Wizard API
+export const wizardAPI = {
+  // Save configuration and create dataset
+  saveConfig: (data: {
+    documentType: string;
+    modelName: string;
+    fields: Array<{ id: string; name: string; type: string; required: boolean }>;
+    annotations?: Record<string, any>;
+  }) => api.post('/wizard/config/', data),
+
+  // Upload training documents
+  uploadDocuments: (datasetId: string, files: File[]) => {
+    const formData = new FormData();
+    formData.append('dataset_id', datasetId);
+    files.forEach(file => formData.append('files', file));
+    return api.post('/wizard/upload/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  // Save document annotations
+  saveAnnotations: (data: {
+    dataset_id: string;
+    document_id: string;
+    annotations: Record<string, any>;
+  }) => api.post('/wizard/annotate/', data),
+
+  // Start training
+  startTraining: (data: {
+    dataset_id: string;
+    epochs?: number;
+    batch_size?: number;
+    learning_rate?: number;
+  }) => api.post('/wizard/train/', data),
+
+  // Get training status
+  getTrainingStatus: (trainingJobId: string) =>
+    api.get('/wizard/status/', { params: { training_job_id: trainingJobId } }),
+
+  // Get all models for current user
+  getModels: () => api.get('/wizard/models/'),
+};
+
 export default api;

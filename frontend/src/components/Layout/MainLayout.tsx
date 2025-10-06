@@ -21,11 +21,6 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Description as DocumentsIcon,
-  ModelTraining as TrainingIcon,
-  Analytics as AnalyticsIcon,
-  Settings as SettingsIcon,
-  AccountCircle,
   Notifications as NotificationsIcon,
   ExitToApp as LogoutIcon,
   Person as ProfileIcon,
@@ -50,45 +45,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const menuItems = [
     {
-      text: 'Dashboard',
+      text: 'Home',
       icon: <DashboardIcon />,
       path: '/dashboard',
       badge: null,
     },
     {
-      text: 'Projects',
+      text: 'My Models',
       icon: <ProjectsIcon />,
       path: '/projects',
       badge: null,
     },
     {
-      text: 'Documents',
-      icon: <DocumentsIcon />,
-      path: '/documents',
-      badge: 'New',
-    },
-    {
-      text: 'Upload',
+      text: 'Create New Model',
       icon: <UploadIcon />,
       path: '/upload',
-      badge: null,
-    },
-    {
-      text: 'Training',
-      icon: <TrainingIcon />,
-      path: '/training',
-      badge: null,
-    },
-    {
-      text: 'Analytics',
-      icon: <AnalyticsIcon />,
-      path: '/analytics',
-      badge: null,
-    },
-    {
-      text: 'Settings',
-      icon: <SettingsIcon />,
-      path: '/settings',
       badge: null,
     },
   ];
@@ -131,10 +102,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Avatar>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              DocuAI
+              Donut Trainer
             </Typography>
             <Typography variant="caption" color="textSecondary">
-              Intelligent Processing
+              Document Extraction
             </Typography>
           </Box>
         </Box>
@@ -216,7 +187,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </IconButton>
 
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            {menuItems.find(item => item.path === location.pathname)?.text || 'DocuAI'}
+            {menuItems.find(item => item.path === location.pathname)?.text || 'Donut Trainer'}
           </Typography>
 
           <Box display="flex" alignItems="center" gap={1}>

@@ -47,6 +47,7 @@ import {
   PlayArrow as RetryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { documentsAPI } from '../services/api';
 
 interface Document {
   id: string;
@@ -78,90 +79,45 @@ const Documents: React.FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock data
+  // Fetch documents from API
   useEffect(() => {
-    const mockDocuments: Document[] = [
-      {
-        id: '1',
-        name: 'Invoice_2024_001.pdf',
-        type: 'Invoice',
-        status: 'completed',
-        progress: 100,
-        accuracy: 96.5,
-        confidence: 94.2,
-        size: 2048576,
-        pages: 3,
-        uploadedAt: '2024-01-15T10:30:00Z',
-        processedAt: '2024-01-15T10:35:00Z',
-        lastUpdated: '2024-01-15T14:22:00Z',
-        extractedFields: 12,
-        totalFields: 12,
-      },
-      {
-        id: '2',
-        name: 'Contract_ABC_Corp.pdf',
-        type: 'Contract',
-        status: 'processing',
-        progress: 65,
-        size: 5242880,
-        pages: 15,
-        uploadedAt: '2024-01-15T11:15:00Z',
-        lastUpdated: '2024-01-15T14:20:00Z',
-        extractedFields: 8,
-        totalFields: 15,
-      },
-      {
-        id: '3',
-        name: 'Receipt_Store_123.jpg',
-        type: 'Receipt',
-        status: 'labeled',
-        progress: 80,
-        accuracy: 89.2,
-        confidence: 87.5,
-        size: 1048576,
-        pages: 1,
-        uploadedAt: '2024-01-15T09:45:00Z',
-        lastUpdated: '2024-01-15T13:10:00Z',
-        extractedFields: 6,
-        totalFields: 8,
-      },
-      {
-        id: '4',
-        name: 'Form_Application.pdf',
-        type: 'Form',
-        status: 'error',
-        progress: 30,
-        size: 3145728,
-        pages: 5,
-        uploadedAt: '2024-01-15T08:20:00Z',
-        lastUpdated: '2024-01-15T12:50:00Z',
-        extractedFields: 0,
-        totalFields: 20,
-        errorMessage: 'Text extraction failed - document may be corrupted',
-      },
-      {
-        id: '5',
-        name: 'Invoice_2024_002.pdf',
-        type: 'Invoice',
-        status: 'trained',
-        progress: 100,
-        accuracy: 98.1,
-        confidence: 96.7,
-        size: 1572864,
-        pages: 2,
-        uploadedAt: '2024-01-14T16:20:00Z',
-        processedAt: '2024-01-14T16:25:00Z',
-        lastUpdated: '2024-01-14T18:30:00Z',
-        extractedFields: 12,
-        totalFields: 12,
-      },
-    ];
+    const fetchDocuments = async () => {
+      try {
+        setLoading(true);
+        const response = await documentsAPI.getAll();
 
-    setTimeout(() => {
-      setDocuments(mockDocuments);
-      setLoading(false);
-    }, 1000);
+        // Transform API response to Document format
+        const transformedDocs: Document[] = response.data.map((doc: any) => ({
+          id: doc.id,
+          name: doc.original_filename,
+          type: doc.document_type_display || doc.document_type?.display_name || 'Unknown',
+          status: doc.status,
+          progress: doc.status === 'completed' ? 100 : doc.status === 'processing' ? 50 : doc.status === 'labeled' ? 80 : 0,
+          size: doc.file_size,
+          pages: doc.page_count || 1,
+          uploadedAt: doc.created_at,
+          processedAt: doc.updated_at,
+          lastUpdated: doc.updated_at,
+          accuracy: undefined,
+          confidence: undefined,
+          extractedFields: undefined,
+          totalFields: undefined,
+        }));
+
+        setDocuments(transformedDocs);
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch documents:', err);
+        setError(err.response?.data?.error || 'Failed to load documents');
+        setDocuments([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
   }, []);
 
   const filteredDocuments = documents.filter(doc => {
@@ -272,6 +228,13 @@ const Documents: React.FC = () => {
 
   return (
     <Box>
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>

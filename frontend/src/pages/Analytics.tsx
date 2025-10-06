@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -39,6 +39,7 @@ import {
   Warning as WarningIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
+import { modelsAPI } from '../services/api';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -56,17 +57,50 @@ const Analytics: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState('all');
   const [timeRange, setTimeRange] = useState('30d');
   const [currentTab, setCurrentTab] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock analytics data
+  // Fetch analytics data from API
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        setLoading(true);
+        const response = await modelsAPI.getAnalytics();
+        setAnalyticsData(response.data);
+        setError(null);
+      } catch (err: any) {
+        console.error('Failed to fetch analytics:', err);
+        setError(err.response?.data?.error || 'Failed to load analytics');
+        // Set default values if API fails
+        setAnalyticsData({
+          overview: {
+            total_models: 0,
+            production_models: 0,
+            models_trained_last_30_days: 0,
+          },
+          by_document_type: {},
+          recent_performance: [],
+          top_used_models: [],
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [selectedProject, timeRange]);
+
+  // Use real data or fallback to defaults
   const overviewMetrics = {
-    totalDocuments: 5847,
-    processedDocuments: 5234,
-    successRate: 94.8,
-    averageAccuracy: 96.2,
-    averageProcessingTime: 2.4,
-    totalProjects: 12,
-    activeModels: 8,
-    dataVolume: '2.3 TB',
+    totalDocuments: 0,
+    processedDocuments: 0,
+    successRate: 0,
+    averageAccuracy: 0,
+    averageProcessingTime: 0,
+    totalProjects: analyticsData?.overview?.total_models || 0,
+    activeModels: analyticsData?.overview?.production_models || 0,
+    dataVolume: '0 GB',
   };
 
   const performanceData = [
