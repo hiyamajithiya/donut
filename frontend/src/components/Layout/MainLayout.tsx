@@ -278,11 +278,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           },
         }}
       >
-        <MenuItem onClick={handleMenuClose}>
+        <MenuItem onClick={() => { handleMenuClose(); navigate('/settings'); }}>
           <ListItemIcon>
             <ProfileIcon fontSize="small" />
           </ListItemIcon>
-          Profile Settings
+          Settings & API Keys
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>

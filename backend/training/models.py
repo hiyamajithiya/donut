@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from documents.models import DocumentType, Document
 import uuid
 import json
+import secrets
+import hashlib
 
 
 class TrainingDataset(models.Model):
@@ -203,3 +205,52 @@ class Feedback(models.Model):
 
     def __str__(self):
         return f"Feedback for {self.document.original_filename}"
+
+
+class APIKey(models.Model):
+    """API keys for external application access to trained models"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_keys')
+    name = models.CharField(max_length=200, help_text="Friendly name for this API key")
+
+    # API key storage (hashed for security)
+    key_prefix = models.CharField(max_length=8, help_text="First 8 characters of key (for display)")
+    key_hash = models.CharField(max_length=64, unique=True, help_text="SHA256 hash of the full key")
+
+    # Permissions and limits
+    is_active = models.BooleanField(default=True)
+    allowed_models = models.ManyToManyField(TrainedModel, blank=True, related_name='api_keys',
+                                           help_text="Models this key can access (empty = all models)")
+
+    # Rate limiting
+    rate_limit = models.IntegerField(default=1000, help_text="Max requests per hour")
+
+    # Usage tracking
+    total_requests = models.IntegerField(default=0)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="Optional expiration date")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "API Key"
+        verbose_name_plural = "API Keys"
+
+    def __str__(self):
+        return f"{self.name} ({self.key_prefix}...)"
+
+    @staticmethod
+    def generate_key():
+        """Generate a new API key"""
+        return f"donut_{secrets.token_urlsafe(32)}"
+
+    @staticmethod
+    def hash_key(key: str) -> str:
+        """Hash an API key using SHA256"""
+        return hashlib.sha256(key.encode()).hexdigest()
+
+    def verify_key(self, key: str) -> bool:
+        """Verify if the provided key matches this API key"""
+        return self.key_hash == self.hash_key(key)

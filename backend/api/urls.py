@@ -12,6 +12,9 @@ from .wizard_views import (
     WizardAnnotationView, WizardTrainingView,
     WizardStatusView, WizardModelsView
 )
+from .api_key_views import (
+    APIKeyManagementView, ModelInferenceView
+)
 
 router = DefaultRouter()
 router.register(r'document-types', DocumentTypeViewSet)
@@ -38,4 +41,10 @@ urlpatterns = [
     path('wizard/train/', WizardTrainingView.as_view(), name='wizard-train'),
     path('wizard/status/', WizardStatusView.as_view(), name='wizard-status'),
     path('wizard/models/', WizardModelsView.as_view(), name='wizard-models'),
+
+    # API Key management
+    path('api-keys/', APIKeyManagementView.as_view(), name='api-keys'),
+
+    # Public inference endpoint (API key authenticated)
+    path('inference/', ModelInferenceView.as_view(), name='model-inference'),
 ]

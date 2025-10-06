@@ -153,4 +153,25 @@ export const wizardAPI = {
   getModels: () => api.get('/wizard/models/'),
 };
 
+// API Key Management
+export const apiKeysAPI = {
+  // Get all API keys
+  getAPIKeys: () => api.get('/api-keys/'),
+
+  // Create new API key
+  createAPIKey: (data: {
+    name: string;
+    rate_limit?: number;
+    expires_in_days?: number;
+    allowed_models?: string[];
+  }) => api.post('/api-keys/', data),
+
+  // Delete API key
+  deleteAPIKey: (keyId: string) => api.delete('/api-keys/', { data: { key_id: keyId } }),
+
+  // Update API key (activate/deactivate)
+  updateAPIKey: (keyId: string, isActive: boolean) =>
+    api.patch('/api-keys/', { key_id: keyId, is_active: isActive }),
+};
+
 export default api;

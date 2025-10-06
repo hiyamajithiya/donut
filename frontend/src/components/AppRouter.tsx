@@ -7,6 +7,7 @@ import MainLayout from './Layout/MainLayout';
 const Dashboard = React.lazy(() => import('../pages/Dashboard'));
 const Projects = React.lazy(() => import('../pages/Projects'));
 const Upload = React.lazy(() => import('../pages/Upload'));
+const Settings = React.lazy(() => import('../pages/Settings'));
 
 const LoadingFallback: React.FC<{ pageName?: string }> = ({ pageName }) => (
   <Box
@@ -62,6 +63,14 @@ const AppRouter: React.FC = () => {
             element={
               <Suspense fallback={<LoadingFallback pageName="Create New Model" />}>
                 <Upload />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <Suspense fallback={<LoadingFallback pageName="Settings" />}>
+                <Settings />
               </Suspense>
             }
           />
