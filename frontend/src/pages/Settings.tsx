@@ -54,7 +54,7 @@ interface APIKey {
 }
 
 interface TabPanelProps {
-  children?: React.Node;
+  children?: React.ReactNode;
   index: number;
   value: number;
 }
