@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import Footer from './Footer';
 
 const drawerWidth = 280;
 
@@ -87,7 +88,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   const drawer = (
-    <Box>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar>
         <Box display="flex" alignItems="center" gap={2}>
           <Avatar
@@ -105,7 +106,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               Donut Trainer
             </Typography>
             <Typography variant="caption" color="textSecondary">
-              Document Extraction
+              by Chinmay Technosoft
             </Typography>
           </Box>
         </Box>
@@ -256,14 +257,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          display: 'flex',
+          flexDirection: 'column',
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
           bgcolor: 'background.default',
         }}
       >
         <Toolbar />
-        {children}
+        <Box sx={{ flexGrow: 1, p: 3 }}>
+          {children}
+        </Box>
+        <Footer />
       </Box>
 
       <Menu

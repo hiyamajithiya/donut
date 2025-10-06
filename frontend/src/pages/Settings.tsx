@@ -314,15 +314,19 @@ const Settings: React.FC = () => {
       {/* Developer Docs Tab */}
       <TabPanel value={tabValue} index={1}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
-                  Using the API
+                  Donut Trainer API Documentation
                 </Typography>
                 <Typography variant="body2" color="textSecondary" paragraph>
                   Use your API key to make requests to the Donut Trainer inference API from your applications.
                 </Typography>
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  This API is powered by <strong>Chinmay Technosoft Private Limited</strong>.
+                  For enterprise support and custom solutions, contact us at support@chinmaytechnosoft.com
+                </Alert>
 
                 <Typography variant="subtitle2" fontWeight="bold" mt={3} mb={1}>
                   1. Authentication

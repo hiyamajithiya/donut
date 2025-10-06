@@ -180,6 +180,16 @@ const LoginPage: React.FC = () => {
                 Password: Chinmay@123
               </Typography>
             </Box>
+
+            {/* Company Branding */}
+            <Box textAlign="center" mt={3} pt={2} borderTop="1px solid" borderColor="divider">
+              <Typography variant="caption" color="text.secondary" display="block">
+                © {new Date().getFullYear()} Chinmay Technosoft Private Limited
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                All rights reserved
+              </Typography>
+            </Box>
           </CardContent>
         </Card>
       </Container>
@@ -389,6 +399,16 @@ const LoginPage: React.FC = () => {
               </Typography>
               <Typography variant="body2" display="block" color="text.secondary">
                 Password: Chinmay@123
+              </Typography>
+            </Box>
+
+            {/* Company Branding */}
+            <Box textAlign="center" mt={4} pt={3} borderTop="1px solid" borderColor="divider">
+              <Typography variant="body2" color="text.secondary" display="block" fontWeight={500}>
+                © {new Date().getFullYear()} Chinmay Technosoft Private Limited
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                All rights reserved
               </Typography>
             </Box>
           </Paper>

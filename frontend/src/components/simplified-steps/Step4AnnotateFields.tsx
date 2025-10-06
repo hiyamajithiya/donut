@@ -10,6 +10,8 @@ import {
   ListItemText,
   Button,
   LinearProgress,
+  Chip,
+  Divider,
 } from '@mui/material';
 import {
   CheckCircle as CheckIcon,
@@ -134,14 +136,15 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
         </Typography>
       </Paper>
 
-      <Grid container spacing={3}>
-        {/* Document Selector */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper sx={{ p: 2 }}>
+      <Box display="flex" gap={2} sx={{ height: 'calc(100vh - 350px)', minHeight: 700 }}>
+        {/* Left Sidebar - Documents & Fields */}
+        <Paper sx={{ width: 280, flexShrink: 0, p: 2, display: 'flex', flexDirection: 'column', gap: 2, overflow: 'auto' }}>
+          {/* Document Selector */}
+          <Box>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Documents ({documents.length})
             </Typography>
-            <List dense>
+            <List dense sx={{ maxHeight: 200, overflow: 'auto' }}>
               {documents.map((doc: any, index: number) => (
                 <ListItem key={doc.id} sx={{ p: 0 }}>
                   <ListItemButton
@@ -163,112 +166,16 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
                 </ListItem>
               ))}
             </List>
-          </Paper>
-        </Grid>
+          </Box>
 
-        {/* Document Preview & Annotation */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ p: 2, minHeight: 400, bgcolor: 'grey.50' }}>
-            <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-              Document Preview - {documents[selectedDocument]?.name}
-            </Typography>
-            <Box
-              sx={{
-                mt: 1,
-                border: '2px solid',
-                borderColor: selectedField ? 'primary.main' : 'divider',
-                borderRadius: 2,
-                bgcolor: 'white',
-                minHeight: 500,
-                maxHeight: 600,
-                overflow: 'auto',
-                position: 'relative',
-              }}
-            >
-              {previewUrl ? (
-                <>
-                  {documents[selectedDocument]?.type === 'application/pdf' ? (
-                    <iframe
-                      src={previewUrl}
-                      style={{
-                        width: '100%',
-                        height: '600px',
-                        border: 'none',
-                      }}
-                      title="Document Preview"
-                    />
-                  ) : (
-                    <Box
-                      component="img"
-                      src={previewUrl}
-                      alt="Document Preview"
-                      sx={{
-                        width: '100%',
-                        height: 'auto',
-                        display: 'block',
-                      }}
-                    />
-                  )}
-                  {selectedField && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: 16,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        zIndex: 10,
-                      }}
-                    >
-                      <Button variant="contained" size="large" onClick={handleAnnotate}>
-                        Mark Selected Field
-                      </Button>
-                    </Box>
-                  )}
-                </>
-              ) : (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: 500,
-                    flexDirection: 'column',
-                    gap: 2,
-                  }}
-                >
-                  <SelectIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-                  <Typography variant="body2" color="textSecondary">
-                    No document available
-                  </Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    Please upload documents in Step 3
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-            <Box mt={1} textAlign="center">
-              {selectedField ? (
-                <Typography variant="body2" color="primary.main" fontWeight="bold">
-                  ✓ Field Selected: {fields.find((f: any) => f.id === selectedField)?.name}
-                  <br />
-                  Click the button above to mark this field!
-                </Typography>
-              ) : (
-                <Typography variant="caption" color="textSecondary">
-                  👉 Select a field from the right panel to start annotating
-                </Typography>
-              )}
-            </Box>
-          </Paper>
-        </Grid>
+          <Divider />
 
-        {/* Fields Panel */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Paper sx={{ p: 2 }}>
+          {/* Fields Panel */}
+          <Box sx={{ flexGrow: 1 }}>
             <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
               Fields to Annotate
             </Typography>
-            <List dense>
+            <List dense sx={{ maxHeight: 400, overflow: 'auto' }}>
               {fields.map((field: any) => {
                 const isAnnotated = isFieldAnnotated(documents[selectedDocument]?.id, field.id);
                 return (
@@ -296,9 +203,112 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
                 );
               })}
             </List>
+          </Box>
+        </Paper>
+
+        {/* Main Preview Area */}
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <Paper sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h6" fontWeight="bold">
+              Document Preview
+            </Typography>
+            <Box display="flex" gap={2} alignItems="center">
+              <Chip
+                label={documents[selectedDocument]?.name || 'No document'}
+                color="primary"
+                variant="outlined"
+              />
+              {selectedField && (
+                <Button variant="contained" size="large" onClick={handleAnnotate}>
+                  Mark Selected Field
+                </Button>
+              )}
+            </Box>
           </Paper>
-        </Grid>
-      </Grid>
+
+          {/* Document Viewer - Full Height */}
+          <Paper
+            sx={{
+              flexGrow: 1,
+              border: '2px solid',
+              borderColor: selectedField ? 'primary.main' : 'divider',
+              bgcolor: 'white',
+              overflow: 'hidden',
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {previewUrl ? (
+              <Box sx={{ flexGrow: 1, overflow: 'auto', position: 'relative' }}>
+                {documents[selectedDocument]?.type === 'application/pdf' ? (
+                  <iframe
+                    src={previewUrl}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      minHeight: '800px',
+                      border: 'none',
+                      display: 'block',
+                    }}
+                    title="Document Preview"
+                  />
+                ) : (
+                  <Box
+                    component="img"
+                    src={previewUrl}
+                    alt="Document Preview"
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'contain',
+                      display: 'block',
+                    }}
+                  />
+                )}
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  gap: 2,
+                }}
+              >
+                <SelectIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
+                <Typography variant="body2" color="textSecondary">
+                  No document available
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  Please upload documents in Step 3
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+
+          {/* Status Message */}
+          <Paper sx={{ mt: 2, p: 2, bgcolor: selectedField ? 'primary.lighter' : 'grey.100', textAlign: 'center' }}>
+            {selectedField ? (
+              <Box>
+                <Typography variant="body1" color="primary.main" fontWeight="bold">
+                  ✓ Field Selected: {fields.find((f: any) => f.id === selectedField)?.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mt={0.5}>
+                  Click the "Mark Selected Field" button in the header to annotate this field
+                </Typography>
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">
+                👉 Select a field from the left sidebar to start annotating
+              </Typography>
+            )}
+          </Paper>
+        </Box>
+      </Box>
 
       {/* Instructions */}
       <Paper sx={{ p: 2, mt: 3, bgcolor: 'info.lighter' }}>
@@ -307,10 +317,11 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
         </Typography>
         <Typography variant="body2" color="info.dark" component="div">
           <ol style={{ margin: 0, paddingLeft: 20 }}>
-            <li>Select a field from the right panel</li>
-            <li>Click on the corresponding area in the document preview</li>
-            <li>Repeat for all fields in each document</li>
-            <li>Switch between documents using the left panel</li>
+            <li>Select a document from the left sidebar</li>
+            <li>Choose a field to annotate from the fields list</li>
+            <li>Click the "Mark Selected Field" button in the document preview</li>
+            <li>Repeat for all fields across all documents</li>
+            <li>Progress will be tracked automatically - aim for at least 80% completion</li>
           </ol>
         </Typography>
       </Paper>
