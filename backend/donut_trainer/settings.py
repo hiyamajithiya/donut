@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-p*wpim_h08v1k9s(-l3yvt1x!t0!1qq*ca@&*6e8guttyu76$z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['donut.chinmaytechnosoft.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -135,6 +135,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://donut.chinmaytechnosoft.com",
 ]
 
 # REST Framework Configuration
@@ -165,3 +166,6 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+# Static files collection directory
+STATIC_ROOT = '/var/www/AIML/donut/backend/staticfiles'
