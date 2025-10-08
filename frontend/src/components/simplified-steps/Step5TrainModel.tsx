@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -67,22 +67,40 @@ const Step5TrainModel: React.FC<Props> = ({ data, updateData }) => {
       }
 
       // Step 2: Upload documents if not already uploaded
+      let uploadedDocIds: { [key: string]: string } = data.uploadedDocIds || {};
+
       if (data.documents && data.documents.length > 0 && !data.documentsUploaded) {
         setTrainingStatus('Uploading documents...');
-        await wizardAPI.uploadDocuments(currentDatasetId, data.documents);
-        updateData({ ...data, documentsUploaded: true });
+        // Extract File objects from document data
+        const files = data.documents.map((doc: any) => doc.file).filter((f: any) => f instanceof File);
+        if (files.length > 0) {
+          const uploadResponse = await wizardAPI.uploadDocuments(currentDatasetId, files);
+
+          // Map local document IDs to uploaded document IDs
+          const uploadedDocs = uploadResponse.data.documents || [];
+          data.documents.forEach((localDoc: any, index: number) => {
+            if (uploadedDocs[index]) {
+              uploadedDocIds[localDoc.id] = uploadedDocs[index].id;
+            }
+          });
+
+          updateData({ ...data, documentsUploaded: true, uploadedDocIds });
+        } else {
+          throw new Error('No valid files to upload');
+        }
       }
 
       // Step 3: Save annotations if any
       if (data.annotations && Object.keys(data.annotations).length > 0) {
         setTrainingStatus('Saving annotations...');
-        // Save annotations for each document
-        for (const docId of Object.keys(data.annotations)) {
-          if (data.annotations[docId] && Object.keys(data.annotations[docId]).length > 0) {
+        // Save annotations for each document using uploaded document IDs
+        for (const localDocId of Object.keys(data.annotations)) {
+          const serverDocId = uploadedDocIds[localDocId];
+          if (serverDocId && data.annotations[localDocId] && Object.keys(data.annotations[localDocId]).length > 0) {
             await wizardAPI.saveAnnotations({
               dataset_id: currentDatasetId,
-              document_id: docId,
-              annotations: data.annotations[docId],
+              document_id: serverDocId, // Use server document ID
+              annotations: data.annotations[localDocId],
             });
           }
         }

@@ -151,6 +151,16 @@ export const wizardAPI = {
 
   // Get all models for current user
   getModels: () => api.get('/wizard/models/'),
+
+  // Test a trained model with a document
+  testModel: (modelId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('model_id', modelId);
+    formData.append('file', file);
+    return api.post('/wizard/test-model/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // API Key Management

@@ -10,7 +10,7 @@ from .views import (
 from .wizard_views import (
     WizardConfigView, WizardDocumentUploadView,
     WizardAnnotationView, WizardTrainingView,
-    WizardStatusView, WizardModelsView
+    WizardStatusView, WizardModelsView, WizardTestModelView
 )
 from .api_key_views import (
     APIKeyManagementView, ModelInferenceView
@@ -41,6 +41,7 @@ urlpatterns = [
     path('wizard/train/', WizardTrainingView.as_view(), name='wizard-train'),
     path('wizard/status/', WizardStatusView.as_view(), name='wizard-status'),
     path('wizard/models/', WizardModelsView.as_view(), name='wizard-models'),
+    path('wizard/test-model/', WizardTestModelView.as_view(), name='wizard-test-model'),
 
     # API Key management
     path('api-keys/', APIKeyManagementView.as_view(), name='api-keys'),

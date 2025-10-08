@@ -22,7 +22,6 @@ import {
   Select,
   Alert,
   Fab,
-  Tooltip,
   CircularProgress,
 } from '@mui/material';
 import {
@@ -30,7 +29,6 @@ import {
   MoreVert as MoreIcon,
   PlayArrow as StartIcon,
   Pause as PauseIcon,
-  Stop as StopIcon,
   Visibility as ViewIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -40,6 +38,8 @@ import {
   CheckCircle as SuccessIcon,
   Error as ErrorIcon,
   Schedule as PendingIcon,
+  Science as TestIcon,
+  Upload as UploadIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { wizardAPI } from '../services/api';
@@ -71,6 +71,10 @@ const Projects: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [testFile, setTestFile] = useState<File | null>(null);
+  const [testResult, setTestResult] = useState<any>(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   const [newProject, setNewProject] = useState({
     name: '',
@@ -154,6 +158,46 @@ const Projects: React.FC = () => {
       setDeleteDialogOpen(false);
       setSelectedProject(null);
     }
+  };
+
+  const handleTestModel = async () => {
+    if (!selectedProject || !testFile) {
+      return;
+    }
+
+    setTestLoading(true);
+    setTestResult(null);
+
+    try {
+      const response = await wizardAPI.testModel(selectedProject.id, testFile);
+      setTestResult(response.data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Model test failed:', err);
+      setTestResult({
+        status: 'error',
+        error: err.response?.data?.error || err.response?.data?.message || 'Failed to test model',
+        message: err.response?.data?.message
+      });
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
+  const handleOpenTestDialog = (project: Project) => {
+    // Close menu first but preserve the project
+    setAnchorEl(null);
+    setSelectedProject(project);
+    setTestDialogOpen(true);
+    setTestResult(null);
+    setTestFile(null);
+  };
+
+  const handleCloseTestDialog = () => {
+    setTestDialogOpen(false);
+    setTestResult(null);
+    setTestFile(null);
+    // Don't clear selectedProject here - it's used by the menu
   };
 
   const getStatusColor = (status: string) => {
@@ -458,6 +502,7 @@ const Projects: React.FC = () => {
                         variant="contained"
                         startIcon={<StartIcon />}
                         color="success"
+                        onClick={() => navigate('/upload')}
                       >
                         Start
                       </Button>
@@ -468,6 +513,7 @@ const Projects: React.FC = () => {
                         variant="contained"
                         startIcon={<PauseIcon />}
                         color="warning"
+                        onClick={() => navigate('/upload')}
                       >
                         Pause
                       </Button>
@@ -477,6 +523,7 @@ const Projects: React.FC = () => {
                         size="small"
                         variant="outlined"
                         startIcon={<EditIcon />}
+                        onClick={() => navigate('/upload')}
                       >
                         Edit
                       </Button>
@@ -509,7 +556,14 @@ const Projects: React.FC = () => {
           <ViewIcon fontSize="small" sx={{ mr: 1 }} />
           View Details
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
+        <MenuItem onClick={() => handleOpenTestDialog(selectedProject!)}>
+          <TestIcon fontSize="small" sx={{ mr: 1 }} />
+          Test Model
+        </MenuItem>
+        <MenuItem onClick={() => {
+          navigate('/upload');
+          handleMenuClose();
+        }}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit Project
         </MenuItem>
@@ -590,6 +644,105 @@ const Projects: React.FC = () => {
           <Button onClick={handleDeleteProject} color="error" variant="contained">
             Delete
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Test Model Dialog */}
+      <Dialog open={testDialogOpen} onClose={handleCloseTestDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          Test Model: {selectedProject?.name}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Upload a document to test the model's inference capabilities
+            </Typography>
+
+            <Button
+              variant="outlined"
+              component="label"
+              startIcon={<UploadIcon />}
+              fullWidth
+              sx={{ mt: 2, mb: 2 }}
+            >
+              {testFile ? testFile.name : 'Choose File'}
+              <input
+                type="file"
+                hidden
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setTestFile(e.target.files[0]);
+                    setTestResult(null);
+                  }
+                }}
+              />
+            </Button>
+
+            {testFile && (
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleTestModel}
+                disabled={testLoading}
+                startIcon={testLoading ? <CircularProgress size={20} /> : <TestIcon />}
+              >
+                {testLoading ? 'Testing Model...' : 'Run Test'}
+              </Button>
+            )}
+
+            {testResult && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Test Results:
+                </Typography>
+                {testResult.status === 'success' ? (
+                  <Box>
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      Model inference completed successfully!
+                    </Alert>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Extracted Data:
+                    </Typography>
+                    <Box
+                      component="pre"
+                      sx={{
+                        p: 2,
+                        bgcolor: 'grey.100',
+                        borderRadius: 1,
+                        overflow: 'auto',
+                        maxHeight: '300px',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {JSON.stringify(testResult.extracted_data, null, 2)}
+                    </Box>
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="textSecondary">
+                        Model: {testResult.model_name}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Inference Count: {testResult.inference_count}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Alert severity="error">
+                    <Typography variant="subtitle2">Error:</Typography>
+                    <Typography variant="body2">{testResult.error}</Typography>
+                    {testResult.message && (
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        {testResult.message}
+                      </Typography>
+                    )}
+                  </Alert>
+                )}
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseTestDialog}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
