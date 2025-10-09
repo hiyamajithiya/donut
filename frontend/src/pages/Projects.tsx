@@ -394,7 +394,7 @@ const Projects: React.FC = () => {
                     </Box>
                   </Box>
                   <IconButton
-                    onClick={(e) => handleMenuClick(e, project)}
+                    onClick={(e) => { e.stopPropagation(); handleMenuClick(e, project); }}
                     size="small"
                   >
                     <MoreIcon />
@@ -489,7 +489,7 @@ const Projects: React.FC = () => {
                       size="small"
                       variant="outlined"
                       startIcon={<AnalyticsIcon />}
-                      onClick={() => navigate(`/analytics?project=${project.id}`)}
+                      onClick={() => navigate(`/projects/${project.id}#analytics`)}
                     >
                       Analytics
                     </Button>
@@ -502,7 +502,7 @@ const Projects: React.FC = () => {
                         variant="contained"
                         startIcon={<StartIcon />}
                         color="success"
-                        onClick={() => navigate('/upload')}
+                        onClick={() => navigate(`/projects/${project.id}/edit`)}
                       >
                         Start
                       </Button>
@@ -513,7 +513,7 @@ const Projects: React.FC = () => {
                         variant="contained"
                         startIcon={<PauseIcon />}
                         color="warning"
-                        onClick={() => navigate('/upload')}
+                        onClick={() => navigate(`/projects/${project.id}/edit`)}
                       >
                         Pause
                       </Button>
@@ -523,7 +523,7 @@ const Projects: React.FC = () => {
                         size="small"
                         variant="outlined"
                         startIcon={<EditIcon />}
-                        onClick={() => navigate('/upload')}
+                        onClick={() => navigate(`/projects/${project.id}/edit`)}
                       >
                         Edit
                       </Button>
@@ -567,7 +567,7 @@ const Projects: React.FC = () => {
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
           Edit Project
         </MenuItem>
-        <MenuItem onClick={() => navigate(`/analytics?project=${selectedProject?.id}`)}>
+        <MenuItem onClick={() => navigate(`/projects/${selectedProject?.id}#analytics`)}>
           <AnalyticsIcon fontSize="small" sx={{ mr: 1 }} />
           View Analytics
         </MenuItem>

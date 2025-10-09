@@ -6,14 +6,16 @@ django-cors-headers>=4.0.0
 # Database
 psycopg2-binary>=2.9.0
 
-# ML/AI Libraries (using latest compatible versions)
+# ML/AI Libraries
 torch>=2.0.0
 transformers>=4.30.0
 accelerate>=0.20.0
 datasets>=2.10.0
 huggingface-hub>=0.16.0
+protobuf==6.32.1
+sentencepiece==0.2.1
 
-# Image Processing
+# Document Processing
 pdf2image>=1.16.0
 Pillow>=10.0.0
 

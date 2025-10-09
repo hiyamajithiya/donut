@@ -29,8 +29,8 @@ app.conf.update(
     result_serializer='json',
     timezone='UTC',
     enable_utc=True,
-    task_time_limit=30 * 60,  # 30 minutes
-    task_soft_time_limit=25 * 60,  # 25 minutes
+    task_time_limit=180 * 60,  # 3 hours
+    task_soft_time_limit=170 * 60,  # 2 hours 50 minutes
     worker_prefetch_multiplier=1,
     task_acks_late=True,
     task_reject_on_worker_lost=True,

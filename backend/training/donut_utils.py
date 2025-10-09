@@ -14,6 +14,31 @@ from transformers import (
 )
 import logging
 
+
+def load_image_from_file(file_path: str):
+    """Load image from file, converting PDF if necessary"""
+    from pathlib import Path
+    from pdf2image import convert_from_path
+    
+    file_ext = Path(file_path).suffix.lower()
+    
+    if file_ext == '.pdf':
+        # Convert first page of PDF to image at 200 DPI for better quality
+        # Explicitly specify poppler path for Celery environment
+        images = convert_from_path(
+	    file_path, 
+	    first_page=1, 
+	    last_page=1, 
+	    dpi=200,
+	    poppler_path='/usr/bin'
+        )
+        image = images[0].convert('RGB')
+    else:
+        # Regular image file
+        image = Image.open(file_path).convert('RGB')
+    
+    return image
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +54,7 @@ class DonutDataProcessor:
         """Process a single document for training"""
         try:
             # Load and process image
-            image = Image.open(image_path).convert('RGB')
+            image = load_image_from_file(image_path)
 
             # Create task prompt based on document type
             task_prompt = f"<s_doctype>{ground_truth.get('doc_type', 'document')}</s_doctype>"
@@ -221,7 +246,7 @@ class DonutInference:
         """
         try:
             # Load image
-            image = Image.open(image_path).convert('RGB')
+            image = load_image_from_file(image_path)
 
             # Process image
             pixel_values = self.processor(image, return_tensors="pt").pixel_values

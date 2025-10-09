@@ -205,14 +205,14 @@ def train_donut_model(job_id: str):
         train_dataset = DonutDataset(
             train_data,
             trainer.processor,
-            max_length=job.image_size,
+            max_length=768,  # Text sequence length
             split="train"
         )
 
         val_dataset = DonutDataset(
             val_data,
             trainer.processor,
-            max_length=job.image_size,
+            max_length=768,  # Text sequence length
             split="validation"
         ) if val_data else None
 
@@ -227,7 +227,7 @@ def train_donut_model(job_id: str):
             weight_decay=job.weight_decay,
             logging_steps=10,
             save_steps=500,
-            evaluation_strategy="epoch" if val_dataset else "no",
+            eval_strategy="epoch" if val_dataset else "no",
             save_strategy="epoch",
             save_total_limit=3,
             load_best_model_at_end=True if val_dataset else False,
@@ -245,7 +245,7 @@ def train_donut_model(job_id: str):
                 self.callback = callback
                 self.current_epoch = 0
 
-            def compute_loss(self, model, inputs, return_outputs=False):
+            def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
                 loss = super().compute_loss(model, inputs, return_outputs)
 
                 # Update callback
