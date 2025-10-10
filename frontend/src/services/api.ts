@@ -5,7 +5,7 @@ const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 300000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -159,6 +159,7 @@ export const wizardAPI = {
     formData.append('file', file);
     return api.post('/wizard/test-model/', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 600000, // 10 minutes for CPU inference
     });
   },
 };
