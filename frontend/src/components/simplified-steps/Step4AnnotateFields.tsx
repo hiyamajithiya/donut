@@ -12,6 +12,11 @@ import {
   LinearProgress,
   Chip,
   Divider,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   CheckCircle as CheckIcon,
@@ -29,6 +34,8 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [annotations, setAnnotations] = useState(data.annotations || {});
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [annotationDialog, setAnnotationDialog] = useState(false);
+  const [fieldValue, setFieldValue] = useState('');
 
   const documents = data.documents || [];
   const fields = data.fields || [];
@@ -58,25 +65,41 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
 
   const handleFieldSelect = (fieldId: string) => {
     console.log('Field selected:', fieldId);
-    console.log('Current selectedField:', selectedField);
     setSelectedField(fieldId);
   };
 
   const handleAnnotate = () => {
     console.log('Handle annotate clicked');
     console.log('Selected field:', selectedField);
-    console.log('Selected document:', documents[selectedDocument]);
 
     if (selectedField && documents[selectedDocument]) {
+      // Get the field name (convert template-0 to invoice_number format)
+      const field = fields.find((f: any) => f.id === selectedField);
+      const fieldName = field?.name?.toLowerCase().replace(/s+/g, '_') || selectedField;
+      
+      // Get existing value if any
       const docId = documents[selectedDocument].id;
-      console.log('Annotating docId:', docId, 'fieldId:', selectedField);
+      const existingValue = annotations[docId]?.[fieldName] || '';
+      
+      setFieldValue(existingValue);
+      setAnnotationDialog(true);
+    }
+  };
 
-      // Create a new annotations object without mutating the original
+  const handleSaveAnnotation = () => {
+    if (selectedField && documents[selectedDocument] && fieldValue.trim()) {
+      const docId = documents[selectedDocument].id;
+      const field = fields.find((f: any) => f.id === selectedField);
+      const fieldName = field?.name?.toLowerCase().replace(/s+/g, '_') || selectedField;
+
+      console.log(`Saving annotation: docId=${docId}, fieldName=${fieldName}, value=${fieldValue}`);
+
+      // Save in correct format: { "invoice_number": "INV-001" }
       const newAnnotations = {
         ...annotations,
         [docId]: {
           ...(annotations[docId] || {}),
-          [selectedField]: { annotated: true, area: {}, timestamp: Date.now() },
+          [fieldName]: fieldValue.trim(),
         },
       };
 
@@ -84,15 +107,17 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
       setAnnotations(newAnnotations);
       updateData({ annotations: newAnnotations });
 
-      // Clear selection after successful annotation
+      // Clear and close
+      setAnnotationDialog(false);
+      setFieldValue('');
       setSelectedField(null);
-    } else {
-      console.log('Cannot annotate - missing selectedField or document');
     }
   };
 
   const isFieldAnnotated = (docId: string, fieldId: string) => {
-    return annotations[docId]?.[fieldId]?.annotated;
+    const field = fields.find((f: any) => f.id === fieldId);
+    const fieldName = field?.name?.toLowerCase().replace(/s+/g, '_') || fieldId;
+    return annotations[docId]?.[fieldName] && annotations[docId][fieldName].trim() !== '';
   };
 
   const getAnnotationProgress = () => {
@@ -117,7 +142,7 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
         Annotate Fields
       </Typography>
       <Typography variant="body1" color="textSecondary" paragraph>
-        Select and map each field in your sample documents. This teaches the model where to find the data.
+        Enter the value for each field in your sample documents. This teaches the model what data to extract.
       </Typography>
 
       {/* Progress */}
@@ -221,13 +246,13 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
               />
               {selectedField && (
                 <Button variant="contained" size="large" onClick={handleAnnotate}>
-                  Mark Selected Field
+                  Enter Field Value
                 </Button>
               )}
             </Box>
           </Paper>
 
-          {/* Document Viewer - Full Height */}
+          {/* Document Viewer */}
           <Paper
             sx={{
               flexGrow: 1,
@@ -283,9 +308,6 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
                 <Typography variant="body2" color="textSecondary">
                   No document available
                 </Typography>
-                <Typography variant="caption" color="textSecondary">
-                  Please upload documents in Step 3
-                </Typography>
               </Box>
             )}
           </Paper>
@@ -298,7 +320,7 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
                   ✓ Field Selected: {fields.find((f: any) => f.id === selectedField)?.name}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" mt={0.5}>
-                  Click the "Mark Selected Field" button in the header to annotate this field
+                  Click "Enter Field Value" to input the value from this document
                 </Typography>
               </Box>
             ) : (
@@ -310,6 +332,43 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
         </Box>
       </Box>
 
+      {/* Annotation Dialog */}
+      <Dialog open={annotationDialog} onClose={() => setAnnotationDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Enter Field Value: {fields.find((f: any) => f.id === selectedField)?.name}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="textSecondary" paragraph sx={{ mt: 1 }}>
+            Look at the document preview and enter the value for this field as it appears in the document.
+          </Typography>
+          <TextField
+            autoFocus
+            fullWidth
+            label="Field Value"
+            value={fieldValue}
+            onChange={(e) => setFieldValue(e.target.value)}
+            placeholder="e.g., INV-2025-001"
+            helperText="Enter the exact value from the document"
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setAnnotationDialog(false);
+            setFieldValue('');
+          }}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSaveAnnotation} 
+            variant="contained"
+            disabled={!fieldValue.trim()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Instructions */}
       <Paper sx={{ p: 2, mt: 3, bgcolor: 'info.lighter' }}>
         <Typography variant="body2" fontWeight="bold" color="info.dark" gutterBottom>
@@ -318,10 +377,10 @@ const Step4AnnotateFields: React.FC<Props> = ({ data, updateData }) => {
         <Typography variant="body2" color="info.dark" component="div">
           <ol style={{ margin: 0, paddingLeft: 20 }}>
             <li>Select a document from the left sidebar</li>
-            <li>Choose a field to annotate from the fields list</li>
-            <li>Click the "Mark Selected Field" button in the document preview</li>
+            <li>Choose a field to annotate</li>
+            <li>Click "Enter Field Value" and type the value you see in the document</li>
             <li>Repeat for all fields across all documents</li>
-            <li>Progress will be tracked automatically - aim for at least 80% completion</li>
+            <li>Aim for at least 80% completion to train effectively</li>
           </ol>
         </Typography>
       </Paper>

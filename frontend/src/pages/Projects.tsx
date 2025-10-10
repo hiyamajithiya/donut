@@ -477,10 +477,10 @@ const Projects: React.FC = () => {
                       fullWidth
                       size="small"
                       variant="outlined"
-                      startIcon={<ViewIcon />}
-                      onClick={() => navigate(`/projects/${project.id}`)}
+                      startIcon={<TestIcon />}
+                      onClick={() => handleOpenTestDialog(project)}
                     >
-                      View
+                      Test
                     </Button>
                   </Grid>
                   <Grid size={{ xs: 4 }}>
@@ -687,7 +687,7 @@ const Projects: React.FC = () => {
                 disabled={testLoading}
                 startIcon={testLoading ? <CircularProgress size={20} /> : <TestIcon />}
               >
-                {testLoading ? 'Testing Model...' : 'Run Test'}
+                {testLoading ? 'Testing Model... (may take 2-3 minutes)' : 'Run Test'}
               </Button>
             )}
 
